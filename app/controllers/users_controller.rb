@@ -16,21 +16,29 @@ class UsersController < ApplicationController
 	end
 
 	def new
-		@title = "Sign up"
-		@user = User.new
+		if !signed_in?
+			@title = "Sign up"
+			@user = User.new
+		else
+			redirect_to root_path
+		end	
 	end
 
 	def create
-		@user = User.new(params[:user])
-		if @user.save
-			sign_in @user
-			flash[:success] = "Welcome to the Sample App!"
-			redirect_to @user
+		if !signed_in?
+			@user = User.new(params[:user])
+			if @user.save
+				sign_in @user
+				flash[:success] = "Welcome to the Sample App!"
+				redirect_to @user
+			else
+				@title = "Sign up"
+				@user.password = ""
+				@user.password_confirmation = ""
+				render 'new'
+			end
 		else
-			@title = "Sign up"
-			@user.password = ""
-			@user.password_confirmation = ""
-			render 'new'
+			redirect_to root_path
 		end
 	end
  
@@ -48,13 +56,22 @@ class UsersController < ApplicationController
 			render 'edit'
 		end
 	end
-	
+
 	def destroy
-		User.find(params[:id]).destroy
-		flash[:success] = "User destroyed"
-		redirect_to users_path
-	end
-	
+		delete_user = User.find(params[:id])
+		if !delete_user.admin?
+			delete_user.destroy
+			flash[:success] = "User destroyed"
+			redirect_to users_path
+		else
+#			@title = "All users"
+#			@users = User.paginate(:page => params[:page])
+			flash[:error] = "You can't destroy an admin user"
+			redirect_to users_path
+		end
+	end	
+			
+			
 	private
 		def authenticate
 			deny_access unless signed_in?

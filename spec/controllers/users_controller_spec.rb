@@ -14,6 +14,7 @@ describe UsersController do
 		end
 
 		describe "for signed-in users" do
+		
 			before(:each) do
 				@user = test_sign_in(Factory(:user))
 				second = Factory(:user, :email => "another@example.com")
@@ -50,6 +51,17 @@ describe UsersController do
 												:content => "2")
 				response.should have_selector("a", :href => "/users?page=2",
 												:content => "Next")
+			end
+			
+			it "Should allow Admins to see delete command" do
+				@user.toggle!(:admin)
+				get :index
+				response.should have_selector("li", :content => "delete")
+			end
+			
+			it "Should NOT allow Non-admin to see delete command" do
+				get :index
+				response.should_not have_selector("li", :content => "delete")
 			end
 		end
 	end  
@@ -144,6 +156,15 @@ describe UsersController do
 				post :create, :user => @attr
 				response.should render_template('new')
 			end
+		
+			it "should redirect signed-in users to the root path" do
+				@user = Factory(:user)
+				test_sign_in(@user)
+				@attr = { :name => "New User", :email => "user@example.com",
+						:password => "foobar", :password_confirmation => "foobar" }
+				post :create, :user => @attr
+				response.should redirect_to (root_path)
+			end	
 		end
 	
 		describe "success" do
@@ -297,36 +318,57 @@ describe UsersController do
 		end
 
 		describe "as a non-signed-in user" do
+		
 			it "should deny access" do
 				delete :destroy, :id => @user
 				response.should redirect_to(signin_path)
 			end
+			
 		end
 
 		describe "as a non-admin user" do
+		
 			it "should protect the page" do
 				test_sign_in(@user)
 				delete :destroy, :id => @user
 				response.should redirect_to(root_path)
 			end
+			
 		end
 
 		describe "as an admin user" do
 
 			before(:each) do
-				admin = Factory(:user, :email => "admin@example.com", :admin => true)
-				test_sign_in(admin)
+				@admin = Factory(:user, :email => "admin@example.com", :admin => true)
+				test_sign_in(@admin)
 			end
 
-			it "should destroy the user" do
-				lambda do
+			describe "trying to delete its own accnt" do
+
+				it "should not allow the admin to destroy its own account" do
+					lambda do
+						delete :destroy, :id => @admin
+					end.should_not change(User, :count)
+				end
+			
+				it "should re-render the index page" do
+					delete :destroy, :id => @admin
+					response.should redirect_to(users_path)
+				end
+			end
+			
+			describe "deleting a third party account" do
+			
+				it "should destroy the user" do
+					lambda do
+						delete :destroy, :id => @user
+					end.should change(User, :count).by(-1)
+				end
+
+				it "should redirect to the users page" do
 					delete :destroy, :id => @user
-				end.should change(User, :count).by(-1)
-			end
-
-			it "should redirect to the users page" do
-				delete :destroy, :id => @user
-				response.should redirect_to(users_path)
+					response.should redirect_to(users_path)
+				end
 			end
 		end
 	end
