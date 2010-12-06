@@ -14,6 +14,13 @@ describe MicropostsController do
 			delete :destroy, :id => 1
 			response.should redirect_to(signin_path)
 		end
+		
+
+		it "should deny access 'index'" do
+			get :index, :id => 1
+			response.should redirect_to(signin_path)
+			flash[:notice].should =~ /sign in/i
+		end
 
 	end
  
@@ -102,4 +109,34 @@ describe MicropostsController do
 		
 	end
 	
+	# describe "GET 'index'" do
+
+		# before(:each) do
+			# @user = test_sign_in(Factory(:user))
+			# @micropost = Factory(:micropost, :user => @user)
+		# end
+
+		# it "should be successful" do
+			# get :index, :id => @user
+			# response.should be_success
+		# end
+
+		# it "should have the right title" do
+			# get :index, :id => @user
+			# response.should have_selector("title", :content => "All posts from #{@user.name}")
+		# end
+
+		# it "should have an element for each micropost" do
+			# 40.times do
+				# @user.microposts << Factory(:micropost, :user => @user, :content => Factory.next(:micropost))
+			# end
+			# get :index, :id => @user
+			# @microposts.each do |micropost|
+				# response.should have_selector("li", :content => micropost.content)
+			# end
+
+		# end
+
+	# end
+
 end
