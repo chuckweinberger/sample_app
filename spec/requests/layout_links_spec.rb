@@ -75,6 +75,35 @@ describe "LayoutLinks" do
 		end
 		
 	end
+	
+	describe "when a user can delete a post" do
+
+		before(:each) do
+			@user = Factory(:user)
+			visit signin_path
+			fill_in :email,    :with => @user.email
+			fill_in :password, :with => @user.password
+			click_button
+			Factory(:micropost, :user => @user, :content => "Foo bar")
+
+		end
+
+		it "should allow delete function when current user is the poster" do 
+			visit root_path
+			response.should have_selector("a", :href => "/microposts/1",
+												:content => "delete")
+		end
+			
+		it "should not allow delete function when current user isn't the poster" do 
+			test_sign_out
+			@non_posting_user = Factory(:user, :email => "another@example.com")
+			integration_sign_in(@non_posting_user)
+			visit root_path
+			response.should_not have_selector("a", :href => "/microposts/1",
+												:content => "delete")
+		end
+
+	end
 
 end
 

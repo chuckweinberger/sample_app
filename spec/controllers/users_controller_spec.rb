@@ -121,6 +121,7 @@ describe UsersController do
 			response.should have_selector("a", :href => "/users/1?page=2",
 											:content => "Next")
 		end
+
 	end
 
 	describe "GET 'new'" do
