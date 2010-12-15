@@ -6,7 +6,6 @@ gem 'will_paginate', '3.0.pre2'
 gem "sqlite3-ruby", "~> 1.3.0", :require => "sqlite3"
 
 group :production, :staging do
-  gem "pg"
 end
 
 group :development do
