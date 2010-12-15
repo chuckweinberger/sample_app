@@ -3,9 +3,9 @@ source 'http://rubygems.org'
 gem 'rails', '3.0.3'
 gem 'gravatar_image_tag', '0.1.0'
 gem 'will_paginate', '3.0.pre2'
-gem "sqlite3-ruby", "~> 1.3.0", :require => "sqlite3"
 
 group :production, :staging do
+  gem "pg"
 end
 
 group :development do
