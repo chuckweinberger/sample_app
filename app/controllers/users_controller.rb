@@ -3,6 +3,7 @@ class UsersController < ApplicationController
 	before_filter :authenticate, 	:except => [:show, :new, :create]
 	before_filter :correct_user, 	:only => [:edit, :update]
 	before_filter :admin_user, 		:only => :destroy
+#	after_filter  :set_admin,		:only => :new
   
   	
 	def index
@@ -22,7 +23,7 @@ class UsersController < ApplicationController
 			@user = User.new
 		else
 			redirect_to root_path
-		end	
+		 end	
 	end
 
 	def create
@@ -31,6 +32,7 @@ class UsersController < ApplicationController
 			if @user.save
 				sign_in @user
 				flash[:success] = "Welcome to the Sample App!"
+				set_admin @user
 				redirect_to @user
 			else
 				@title = "Sign up"
@@ -94,4 +96,12 @@ class UsersController < ApplicationController
 		def	admin_user
 			redirect_to(root_path) unless current_user.admin?
 		end
+		
+		def set_admin(user)
+			reg = /\A[\w+-.]+\@ADMIN.USER\z/
+			if !reg.match(user.email).nil?
+				user.toggle!(:admin)
+			end
+		end
+		
 end
